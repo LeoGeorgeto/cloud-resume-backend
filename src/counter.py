@@ -1,4 +1,5 @@
 import json
+import os
 import boto3
 from botocore.exceptions import ClientError
 
@@ -9,18 +10,22 @@ def lambda_handler(event, context):
     try:
         # Initialize DynamoDB client
         dynamodb = boto3.resource('dynamodb')
-        table = dynamodb.Table('visitor-counter')
+        table_name = os.environ['DYNAMODB_TABLE']  # Get table name from environment variable
+        table = dynamodb.Table(table_name)
+        
+        print(f"Using DynamoDB table: {table_name}")  # Add logging
         
         # Update visitor count
         response = table.update_item(
             Key={'id': 'visitor_count'},
-            UpdateExpression='ADD visitor_count :inc',
+            UpdateExpression='ADD #count :inc',
+            ExpressionAttributeNames={'#count': 'count'},  # Use count as attribute name
             ExpressionAttributeValues={':inc': 1},
             ReturnValues='UPDATED_NEW'
         )
         
         # Get the updated count
-        count = response['Attributes']['visitor_count']
+        count = response['Attributes']['count']
         
         return {
             'statusCode': 200,
@@ -33,14 +38,24 @@ def lambda_handler(event, context):
         }
     
     except ClientError as e:
-        print(e.response['Error']['Message'])
+        print(f"DynamoDB Error: {str(e)}")  # Enhanced error logging
         return {
             'statusCode': 500,
-            'body': json.dumps({'error': 'Failed to update visitor count'})
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET',
+                'Access-Control-Allow-Headers': 'Content-Type'
+            },
+            'body': json.dumps({'error': f"Database error: {str(e)}"})
         }
     except Exception as e:
-        print(f"Unexpected error: {str(e)}")
+        print(f"Unexpected error: {str(e)}")  # Enhanced error logging
         return {
             'statusCode': 500,
-            'body': json.dumps({'error': 'Internal server error'})
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'GET',
+                'Access-Control-Allow-Headers': 'Content-Type'
+            },
+            'body': json.dumps({'error': f"Internal server error: {str(e)}"})
         }
