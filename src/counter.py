@@ -1,7 +1,15 @@
 import json
 import os
 import boto3
+from decimal import Decimal
 from botocore.exceptions import ClientError
+
+# Helper class to convert Decimal to int
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return int(obj)
+        return super(DecimalEncoder, self).default(obj)
 
 def lambda_handler(event, context):
     """
@@ -10,16 +18,16 @@ def lambda_handler(event, context):
     try:
         # Initialize DynamoDB client
         dynamodb = boto3.resource('dynamodb')
-        table_name = os.environ['DYNAMODB_TABLE']  # Get table name from environment variable
+        table_name = os.environ['DYNAMODB_TABLE']
         table = dynamodb.Table(table_name)
         
-        print(f"Using DynamoDB table: {table_name}")  # Add logging
+        print(f"Using DynamoDB table: {table_name}")
         
         # Update visitor count
         response = table.update_item(
             Key={'id': 'visitor_count'},
             UpdateExpression='ADD #count :inc',
-            ExpressionAttributeNames={'#count': 'count'},  # Use count as attribute name
+            ExpressionAttributeNames={'#count': 'count'},
             ExpressionAttributeValues={':inc': 1},
             ReturnValues='UPDATED_NEW'
         )
@@ -34,11 +42,11 @@ def lambda_handler(event, context):
                 'Access-Control-Allow-Methods': 'GET',
                 'Access-Control-Allow-Headers': 'Content-Type'
             },
-            'body': json.dumps({'count': count})
+            'body': json.dumps({'count': count}, cls=DecimalEncoder)
         }
     
     except ClientError as e:
-        print(f"DynamoDB Error: {str(e)}")  # Enhanced error logging
+        print(f"DynamoDB Error: {str(e)}")
         return {
             'statusCode': 500,
             'headers': {
@@ -49,7 +57,7 @@ def lambda_handler(event, context):
             'body': json.dumps({'error': f"Database error: {str(e)}"})
         }
     except Exception as e:
-        print(f"Unexpected error: {str(e)}")  # Enhanced error logging
+        print(f"Unexpected error: {str(e)}")
         return {
             'statusCode': 500,
             'headers': {
