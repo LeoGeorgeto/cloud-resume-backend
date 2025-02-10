@@ -6,18 +6,19 @@ from src.counter import lambda_handler
 
 def test_lambda_handler_success(mocker):
     """Test successful visitor count increment"""
-    # Mock AWS credentials
+    # Mock AWS credentials and DynamoDB table name
     mocker.patch.dict('os.environ', {
         'AWS_ACCESS_KEY_ID': 'testing',
         'AWS_SECRET_ACCESS_KEY': 'testing',
         'AWS_SECURITY_TOKEN': 'testing',
-        'AWS_SESSION_TOKEN': 'testing'
+        'AWS_SESSION_TOKEN': 'testing',
+        'DYNAMODB_TABLE': 'visitor-counter'  # Add this line
     })
-    
+
     # Mock DynamoDB response
     mock_response = {
         'Attributes': {
-            'visitor_count': 42
+            'count': 42  # Changed from visitor_count to count
         }
     }
     
@@ -48,7 +49,7 @@ def test_lambda_handler_success(mocker):
     body = json.loads(response['body'])
     assert 'count' in body
     assert body['count'] == 42
-
+    
 def test_lambda_handler_error(mocker):
     """Test error handling in visitor counter"""
     # Mock AWS credentials
