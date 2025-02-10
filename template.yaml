@@ -3,6 +3,12 @@ Transform: AWS::Serverless-2016-10-31
 
 Description: Cloud Resume Challenge backend infrastructure
 
+Parameters:
+  TableName:
+    Type: String
+    Default: visitor-counter
+    Description: Name of the existing DynamoDB table
+
 Resources:
   VisitorCounterFunction:
     Type: AWS::Serverless::Function
@@ -12,27 +18,18 @@ Resources:
       Runtime: python3.9
       Architectures:
         - x86_64
+      Environment:
+        Variables:
+          DYNAMODB_TABLE: !Ref TableName
       Policies:
         - DynamoDBCrudPolicy:
-            TableName: !Ref VisitorCounterTable
+            TableName: !Ref TableName
       Events:
         GetVisitorCount:
           Type: Api
           Properties:
             Path: /count
             Method: get
-
-  VisitorCounterTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: visitor-counter
-      AttributeDefinitions:
-        - AttributeName: id
-          AttributeType: S
-      KeySchema:
-        - AttributeName: id
-          KeyType: HASH
-      BillingMode: PAY_PER_REQUEST
 
 Outputs:
   ApiUrl:
