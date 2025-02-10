@@ -62,4 +62,5 @@ jobs:
           sam deploy --no-confirm-changeset \
             --no-fail-on-empty-changeset \
             --stack-name cloud-resume-backend \
-            --capabilities CAPABILITY_IAM
+            --capabilities CAPABILITY_IAM \
+            --resolve-s3
