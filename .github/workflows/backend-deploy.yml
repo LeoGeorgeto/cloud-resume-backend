@@ -59,6 +59,8 @@ jobs:
           
       - name: SAM Deploy
         run: |
+          aws cloudformation delete-stack --stack-name cloud-resume-backend || true
+          aws cloudformation wait stack-delete-complete --stack-name cloud-resume-backend || true
           sam deploy --no-confirm-changeset \
             --no-fail-on-empty-changeset \
             --stack-name cloud-resume-backend \
