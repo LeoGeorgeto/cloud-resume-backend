@@ -1,37 +1,51 @@
+# SAM template version and format specification
 AWSTemplateFormatVersion: '2010-09-09'
+# Enable SAM transformation for serverless resources
 Transform: AWS::Serverless-2016-10-31
 
+# Template description
 Description: Cloud Resume Challenge backend infrastructure
 
+# Input parameters
 Parameters:
-  TableName:
-    Type: String
-    Default: visitor-counter
-    Description: Name of the existing DynamoDB table
+ TableName:
+   Type: String
+   Default: visitor-counter
+   Description: Name of the existing DynamoDB table
 
+# AWS Resources definition
 Resources:
-  VisitorCounterFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      CodeUri: src/
-      Handler: counter.lambda_handler
-      Runtime: python3.9
-      Architectures:
-        - x86_64
-      Environment:
-        Variables:
-          DYNAMODB_TABLE: !Ref TableName
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref TableName
-      Events:
-        GetVisitorCount:
-          Type: Api
-          Properties:
-            Path: /count
-            Method: get
+ # Lambda function configuration
+ VisitorCounterFunction:
+   Type: AWS::Serverless::Function    # SAM function type
+   Properties:
+     CodeUri: src/                    # Location of function code
+     Handler: counter.lambda_handler   # Function entry point
+     Runtime: python3.9               # Python runtime version
+     Architectures:
+       - x86_64                       # CPU architecture
+     
+     # Environment variables for the function
+     Environment:
+       Variables:
+         DYNAMODB_TABLE: !Ref TableName    # Reference to DynamoDB table name
+     
+     # IAM policies for DynamoDB access
+     Policies:
+       - DynamoDBCrudPolicy:              # Predefined SAM policy
+           TableName: !Ref TableName       # Grant access to specific table
+     
+     # API Gateway event configuration
+     Events:
+       GetVisitorCount:
+         Type: Api                        # API Gateway integration
+         Properties:
+           Path: /count                   # API endpoint path
+           Method: get                    # HTTP method
 
+# Template outputs
 Outputs:
-  ApiUrl:
-    Description: URL of the API endpoint
-    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/count"
+ ApiUrl:
+   Description: URL of the API endpoint
+   # Construct API URL using CloudFormation Sub function
+   Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/count"
