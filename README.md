@@ -1,204 +1,139 @@
-# Cloud Resume Backend
+# **Cloud Resume Challenge - Backend**
 
-## Overview
-This repository contains the serverless backend implementation for the **Cloud Resume Challenge**. It provides a visitor counter API using **AWS Lambda**, **API Gateway**, and **DynamoDB**, with automated testing and deployment through **GitHub Actions**.
+A serverless backend for the Cloud Resume Challenge, built with **AWS Lambda**, **DynamoDB**, and **API Gateway**, deployed using **AWS SAM** and **GitHub Actions**. This backend efficiently tracks and updates visitor counts while ensuring scalability, security, and automation.
 
-## Directory Structure
+---
+
+## 🚀 **Features**
+
+- **Serverless Architecture**: Utilizes **AWS Lambda** for compute, **DynamoDB** for storage, and **API Gateway** for API management.
+- **Automated Deployment**: Uses **GitHub Actions** to test and deploy via **AWS SAM**.
+- **Efficient Visitor Counting**: Implements **atomic counter updates** in DynamoDB.
+- **CORS Configuration**: Ensures cross-origin requests are handled correctly.
+- **Error Handling**: Implements structured error responses for **database failures** and **unexpected issues**.
+
+---
+
+## 📂 **Project Structure**
 
 ```
 cloud-resume-backend/
-├── .github/
-│   └── workflows/           # GitHub Actions workflows
-│       └── backend-deploy.yml
-├── src/
-│   ├── init.py
-│   └── counter.py          # Lambda function implementation
-├── tests/
-│   └── test_counter.py     # Unit tests
-├── requirements.txt        # Python dependencies
-└── template.yaml          # SAM template
-```
-
-## Features
-- **Serverless Architecture**
-- **Automated Testing**
-- **CI/CD Pipeline**
-- **DynamoDB Integration**
-- **API Gateway Endpoint**
-- **CORS Support**
-- **Error Handling**
-
-## Technologies Used
-- **Python 3.9**
-- **AWS SAM**
-- **AWS Lambda**
-- **Amazon DynamoDB**
-- **Amazon API Gateway**
-- **GitHub Actions**
-- **pytest**
-
----
-
-## Local Development
-
-### Prerequisites
-- **Python 3.9**
-- **AWS SAM CLI**
-- **AWS CLI** configured
-- **Docker** (for local testing)
-
-### Setup
-
-1. **Clone the repository**:
-   ```bash
-   git clone [repository-url]
-   cd cloud-resume-backend
-   ```
-
-2. **Create a virtual environment**:
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Linux/Mac
-   .\venv\Scripts\activate   # Windows
-   ```
-
-3. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-### Running Tests
-
-```bash
-python -m pytest tests/
-```
-
-### Local API Testing
-
-```bash
-sam local start-api
+│
+├── .github/workflows/               # GitHub Actions workflows
+│   ├── backend-deploy.yml            # CI/CD pipeline for backend deployment
+│
+├── src/                              # Source code for Lambda function
+│   ├── __init__.py                   # Package initialization
+│   ├── counter.py                     # Visitor counter Lambda function
+│
+├── tests/                            # Unit tests
+│   ├── test_counter.py                # Pytest-based tests for Lambda function
+│
+├── template.yaml                      # AWS SAM template defining backend infrastructure
+├── requirements.txt                    # Python dependencies
+├── README.md                          # Project documentation
 ```
 
 ---
 
-## Deployment
+## 🛠 **Technologies Used**
 
-The backend is automatically deployed when changes are pushed to the **main** branch.
+### **AWS Services**
+- **AWS Lambda** – Executes visitor count updates.
+- **Amazon DynamoDB** – Stores and retrieves visitor counts.
+- **Amazon API Gateway** – Exposes the `/count` API endpoint.
+- **AWS SAM** – Infrastructure-as-Code (IaC) for managing backend resources.
+- **AWS IAM** – Manages permissions for secure access.
 
-### Prerequisites
-Ensure the following secrets are configured in **GitHub**:
+### **Development & Testing**
+- **Python 3.9** – Backend language for Lambda function.
+- **boto3 & botocore** – AWS SDK for Python.
+- **Pytest & Pytest-Mock** – Unit testing framework.
+- **GitHub Actions** – CI/CD automation.
 
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
+---
 
-### Automated Deployment
-The deployment process includes:
+## 🔧 **Setup and Deployment**
 
-1. **Push to main branch**, which triggers:
-   - Unit tests
-   - SAM build
-   - SAM deploy
+### **Prerequisites**
+Ensure you have the following installed:
+- **Python 3.9+** – Required for Lambda function.
+- **AWS CLI** – For managing AWS resources.
+- **AWS SAM CLI** – Required for serverless deployment.
+- **Terraform** – If integrating with infrastructure provisioning.
+- **Git** – Version control system.
 
-### Manual Deployment
-
+### **1. Clone the Repository**
 ```bash
-# Build
+git clone <repository-url>
+cd cloud-resume-backend
+```
+
+### **2. Install Dependencies**
+```bash
+pip install -r requirements.txt
+```
+
+### **3. Run Tests**
+```bash
+pytest tests/
+```
+
+### **4. Configure AWS Credentials**
+```bash
+aws configure
+```
+
+### **5. Build and Deploy using AWS SAM**
+```bash
 sam build
+sam deploy --stack-name cloud-resume-backend --capabilities CAPABILITY_IAM --resolve-s3 --parameter-overrides TableName=visitor-counter
+```
 
-# Deploy
-sam deploy --guided
+### **6. Verify Deployment**
+After deployment, retrieve the API Gateway URL:
+```bash
+echo $(aws cloudformation describe-stacks --stack-name cloud-resume-backend --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" --output text)
 ```
 
 ---
 
-## API Specification
+## 📦 **Available AWS Resources**
 
-### Endpoint
-
-- **Path**: `/count`
-- **Method**: `GET`
-- **Response Format**: JSON
-
-#### Example Response
-```json
-{
-    "count": 42
-}
-```
-
-#### Error Response
-```json
-{
-    "error": "Error message"
-}
-```
+| Resource        | Description                                       |
+|----------------|---------------------------------------------------|
+| `AWS::Serverless::Function` | Lambda function for visitor counting. |
+| `AWS::DynamoDB::Table`  | Stores visitor count data.                  |
+| `AWS::ApiGateway::RestApi` | Exposes `/count` API endpoint.         |
+| `AWS::IAM::Role` | Grants Lambda access to DynamoDB.               |
 
 ---
 
-## Architecture
+## 🚨 **Troubleshooting**
 
-### Components
-- **Lambda Function** (Python)
-- **DynamoDB Table**
-- **API Gateway**
-- **IAM Roles & Policies**
-- **CloudWatch Logs**
-
-### Data Flow
-1. **Client** requests counter.
-2. **API Gateway** triggers the **Lambda** function.
-3. **Lambda** updates **DynamoDB**.
-4. **Response** is returned to the client.
+### **Common Issues & Fixes**
+| Issue | Solution |
+|--------|----------|
+| `sam deploy` fails | Ensure AWS credentials are configured (`aws configure`). |
+| Lambda function not updating | Run `sam build` before `sam deploy`. |
+| API Gateway not responding | Retrieve API URL using `aws cloudformation describe-stacks`. |
 
 ---
 
-## Testing
+## 📝 **License**
 
-### Unit Tests
-- Lambda function testing
-- DynamoDB mocking
-- Error handling coverage
-
-### Integration Tests
-- API endpoint testing
-- Database operations
-- CORS verification
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
 
 ---
 
-## Monitoring
+## 🙌 **Acknowledgments**
 
-- **CloudWatch Logs**
-- **Lambda metrics**
-- **API Gateway metrics**
-- **DynamoDB metrics**
+- Inspired by the **Cloud Resume Challenge** by Forrest Brazeal.
+- Built using **AWS Serverless Technologies** for hands-on cloud experience.
 
 ---
 
-## Security
+## 👨‍💻 **Author**
 
-- **IAM least privilege**
-- **API Gateway throttling**
-- **DynamoDB encryption**
-- **CORS configuration**
-
----
-
-## Best Practices
-
-- **Infrastructure as Code**
-- **Automated testing**
-- **Error handling**
-- **Logging**
-- **CI/CD pipeline**
-- **Code documentation**
-
----
-
-## Performance
-
-- **Lambda optimization**
-- **DynamoDB capacity**
-- **API Gateway caching**
-- **Error handling**
-
+**Leonardo Georgeto**  
+[LinkedIn](https://linkedin.com/in/georgetol) | [GitHub](https://github.com/LeoGeorgeto) | [Resume](https://leogeo-cloudresume.com/) | [Portfolio](https://leogeorgeto.com/)
